@@ -1,6 +1,6 @@
 {
-    "name": "myfirstapp",
-    "short_name": "myfirstapp",
+    "name": "stepscape",
+    "short_name": "stepscape",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

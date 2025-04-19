@@ -1,4 +1,4 @@
-package com.example.myfirstapp
+package com.example.stepscape
 
 import io.flutter.embedding.android.FlutterActivity
 
