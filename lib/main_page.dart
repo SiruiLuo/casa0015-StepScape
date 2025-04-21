@@ -533,8 +533,7 @@ class _PlanPageState extends State<PlanPage> {
   final List<String> _durations = const ['15 min', '30 min', '1 hour', '2 hours', '3 hours', '4 hours', '5 hours', 'Full day'];
   final List<String> _moods = const [
     'Quiet', 'Bustling', 'Fresh Air', 'Scenic', 'Cultural',
-    'Relaxing', 'Adventurous', 'Romantic', 'Family-friendly',
-    'Pet-friendly', 'Historic', 'Modern', 'Natural', 'Urban'
+    'Relaxing', 'Adventurous', 'Natural', 'Urban'
   ];
 
   @override
@@ -1137,9 +1136,9 @@ class _NavigationPageState extends State<NavigationPage> {
         ));
 
         if (placeResponse.statusCode == 200) {
-          final placeData = json.decode(placeResponse.body);
-          if (placeData['status'] == 'OK' && placeData['results'].isNotEmpty) {
-            final place = placeData['results'][0];
+          final data = json.decode(placeResponse.body);
+          if (data['status'] == 'OK' && data['results'].isNotEmpty) {
+            final place = data['results'][0];
             final name = place['name'] as String;
             if (!places.contains(name)) {
               places.add(name);
@@ -1346,6 +1345,13 @@ class _NavigationPageState extends State<NavigationPage> {
       setState(() {
         _currentStep++;
         _routeInstructions = widget.steps[_currentStep].instruction;
+        
+        // 移动地图视角到当前步骤的起点
+        _mapController?.animateCamera(
+          CameraUpdate.newLatLng(
+            widget.steps[_currentStep].startLocation,
+          ),
+        );
       });
     }
   }
@@ -1740,197 +1746,217 @@ class _LoadingPageState extends State<LoadingPage> with TickerProviderStateMixin
 
   Future<List<LatLng>> _optimizeRouteBasedOnMoods(List<LatLng> points) async {
     if (widget.selectedMoods.isEmpty) {
-      return points; // 如果没有选择情绪标签，返回原始路线
+      return points;
     }
 
-    // 每300米取一个关键点（减少间距以增加变化点）
-    final keyPoints = <LatLng>[];
-    double accumulatedDistance = 0;
-    LatLng? lastPoint;
+    // 计算基础路线的中心点和边界
+    final centerLat = points.map((p) => p.latitude).reduce((a, b) => a + b) / points.length;
+    final centerLng = points.map((p) => p.longitude).reduce((a, b) => a + b) / points.length;
     
-    for (final point in points) {
-      if (lastPoint != null) {
-        accumulatedDistance += _calculateDistance(lastPoint, point);
-      }
-      if (accumulatedDistance >= 300 || lastPoint == null) {
-        keyPoints.add(point);
-        accumulatedDistance = 0;
-      }
-      lastPoint = point;
-    }
-    if (points.last != keyPoints.last) {
-      keyPoints.add(points.last);
-    }
-
-    // 根据情绪标签选择关键点作为途经点
-    final preferences = {
-      'quiet': widget.selectedMoods.contains('Quiet'),
-      'bustling': widget.selectedMoods.contains('Bustling'),
-      'freshAir': widget.selectedMoods.contains('Fresh Air'),
-      'scenic': widget.selectedMoods.contains('Scenic'),
-      'cultural': widget.selectedMoods.contains('Cultural'),
-      'relaxing': widget.selectedMoods.contains('Relaxing'),
-      'adventurous': widget.selectedMoods.contains('Adventurous'),
-      'romantic': widget.selectedMoods.contains('Romantic'),
-      'natural': widget.selectedMoods.contains('Natural'),
-      'urban': widget.selectedMoods.contains('Urban'),
-    };
-
-    // 选择途经点
-    final waypoints = <LatLng>[];
-    
-    // 计算总距离
+    // 计算搜索半径（基础路线长度的1.5倍）
     double totalDistance = 0;
-    for (int i = 0; i < keyPoints.length - 1; i++) {
-      totalDistance += _calculateDistance(keyPoints[i], keyPoints[i + 1]);
+    for (int i = 1; i < points.length; i++) {
+      totalDistance += _calculateDistance(points[i-1], points[i]);
+    }
+    final searchRadius = (totalDistance * 1.5).round();
+
+    // 根据选择的标签确定搜索类型
+    String placeType = '';
+    if (widget.selectedMoods.contains('Cultural')) {
+      placeType = 'museum|art_gallery|church|temple';
+    } else if (widget.selectedMoods.contains('Natural')) {
+      placeType = 'park|natural_feature|campground';
+    } else if (widget.selectedMoods.contains('Urban')) {
+      placeType = 'shopping_mall|department_store|restaurant|cafe';
+    } else if (widget.selectedMoods.contains('Scenic')) {
+      placeType = 'tourist_attraction|park|natural_feature';
+    } else if (widget.selectedMoods.contains('Quiet')) {
+      placeType = 'park|natural_feature|library';
+    } else if (widget.selectedMoods.contains('Bustling')) {
+      placeType = 'shopping_mall|restaurant|night_club';
+    } else if (widget.selectedMoods.contains('Fresh Air')) {
+      placeType = 'park|natural_feature';
+    } else if (widget.selectedMoods.contains('Relaxing')) {
+      placeType = 'park|spa|natural_feature';
     }
 
-    // 根据情绪标签选择途经点
-    if (preferences['quiet']! || preferences['freshAir']! || preferences['relaxing']!) {
-      // 选择距离主路较远的点，但保持路线方向
-      for (int i = 1; i < keyPoints.length - 1; i++) {
-        if (i % 2 == 1) { // 每两个点选一个，增加变化点
-          final point = keyPoints[i];
-          // 计算当前点到起点的距离比例
-          double distanceRatio = 0;
-          for (int j = 0; j < i; j++) {
-            distanceRatio += _calculateDistance(keyPoints[j], keyPoints[j + 1]);
-          }
-          distanceRatio /= totalDistance;
-          
-          // 根据距离比例调整偏移方向，增加偏移量
-          final direction = distanceRatio < 0.5 ? 1 : -1;
-          final offsetLat = direction * 0.002; // 增加偏移量
-          final offsetLng = direction * 0.002; // 增加偏移量
-          
-          waypoints.add(LatLng(
-            point.latitude + offsetLat,
-            point.longitude + offsetLng,
-          ));
+    // 使用Places API搜索符合标签的地点
+    final response = await http.get(Uri.parse(
+      'https://maps.googleapis.com/maps/api/place/nearbysearch/json?'
+      'location=$centerLat,$centerLng&'
+      'radius=$searchRadius&'
+      'type=$placeType&'
+      'key=${Config.googleMapsApiKey}'
+    ));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['status'] == 'OK' && data['results'].isNotEmpty) {
+        // 获取所有符合条件的地点
+        final places = (data['results'] as List).map((place) {
+          return {
+            'location': LatLng(
+              place['geometry']['location']['lat'] as double,
+              place['geometry']['location']['lng'] as double,
+            ),
+            'name': place['name'] as String,
+            'types': (place['types'] as List).cast<String>(),
+          };
+        }).toList();
+
+        // 计算每个地点到起点和终点的距离
+        final startPoint = points.first;
+        final endPoint = points.last;
+        
+        for (var place in places) {
+          final distanceToStart = _calculateDistance(startPoint, place['location'] as LatLng);
+          final distanceToEnd = _calculateDistance(endPoint, place['location'] as LatLng);
+          place['totalDistance'] = distanceToStart + distanceToEnd;
         }
-      }
-    } else if (preferences['bustling']! || preferences['urban']!) {
-      // 选择距离主路较近的点，但增加一些变化
-      for (int i = 0; i < keyPoints.length; i++) {
-        if (i % 3 == 0) { // 每三个点选一个
-          final point = keyPoints[i];
-          // 添加较小的偏移，但保持城市特色
-          final offsetLat = (math.Random().nextDouble() - 0.5) * 0.0015;
-          final offsetLng = (math.Random().nextDouble() - 0.5) * 0.0015;
-          waypoints.add(LatLng(
-            point.latitude + offsetLat,
-            point.longitude + offsetLng,
-          ));
-        }
-      }
-    } else if (preferences['scenic']! || preferences['romantic']!) {
-      // 选择沿途的点，增加风景路线变化
-      for (int i = 0; i < keyPoints.length; i++) {
-        if (i % 2 == 0) { // 每两个点选一个，增加变化点
-          final point = keyPoints[i];
-          // 计算当前点到起点的距离比例
-          double distanceRatio = 0;
-          for (int j = 0; j < i; j++) {
-            distanceRatio += _calculateDistance(keyPoints[j], keyPoints[j + 1]);
-          }
-          distanceRatio /= totalDistance;
-          
-          // 根据距离比例调整偏移方向，增加偏移量
-          final direction = distanceRatio < 0.5 ? 1 : -1;
-          final offsetLat = direction * 0.0015; // 增加偏移量
-          final offsetLng = direction * 0.0015; // 增加偏移量
-          
-          waypoints.add(LatLng(
-            point.latitude + offsetLat,
-            point.longitude + offsetLng,
-          ));
-        }
-      }
-    } else {
-      // 默认选择一些中间点，增加一些变化
-      for (int i = 0; i < keyPoints.length; i++) {
-        if (i % 3 == 0) { // 每三个点选一个
-          final point = keyPoints[i];
-          // 添加适中的偏移
-          final offsetLat = (math.Random().nextDouble() - 0.5) * 0.001;
-          final offsetLng = (math.Random().nextDouble() - 0.5) * 0.001;
-          waypoints.add(LatLng(
-            point.latitude + offsetLat,
-            point.longitude + offsetLng,
-          ));
-        }
-      }
-    }
 
-    // 限制途经点数量，最多使用4个（增加途经点数量）
-    final limitedWaypoints = waypoints.length > 4 
-      ? waypoints.sublist(0, 4) 
-      : waypoints;
+        // 按距离排序，选择最近的5个地点
+        places.sort((a, b) => (a['totalDistance'] as double).compareTo(b['totalDistance'] as double));
+        final candidatePlaces = places.take(5).toList();
 
-    // 确保途经点按顺序排列
-    limitedWaypoints.sort((a, b) {
-      final indexA = points.indexWhere((p) => 
-        (p.latitude - a.latitude).abs() < 0.0001 && 
-        (p.longitude - a.longitude).abs() < 0.0001
-      );
-      final indexB = points.indexWhere((p) => 
-        (p.latitude - b.latitude).abs() < 0.0001 && 
-        (p.longitude - b.longitude).abs() < 0.0001
-      );
-      return indexA.compareTo(indexB);
-    });
-
-    // 使用 Google Maps Directions API 获取实际道路的路线
-    try {
-      // 构建 waypoints 参数
-      final waypointsParam = limitedWaypoints.map((point) => 
-        'via:${point.latitude},${point.longitude}'
-      ).join('|');
-
-      // 获取新的路线
-      final response = await http.get(Uri.parse(
-        'https://maps.googleapis.com/maps/api/directions/json?'
-        'origin=${widget.startPosition.latitude},${widget.startPosition.longitude}&'
-        'destination=${widget.endPosition.latitude},${widget.endPosition.longitude}&'
-        'waypoints=$waypointsParam&'
-        'mode=walking&'
-        'key=${Config.googleMapsApiKey}'
-      ));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['status'] == 'OK' && data['routes'].isNotEmpty) {
-          final route = data['routes'][0];
-          final legs = route['legs'];
-          
-          // 获取路线上的所有点
-          final optimizedPoints = <LatLng>[];
-          for (var leg in legs) {
-            for (var step in leg['steps']) {
-              optimizedPoints.add(LatLng(
-                step['start_location']['lat'] as double,
-                step['start_location']['lng'] as double,
+        // 如果选择了Fresh Air标签，获取这些候选地点的空气质量数据
+        if (widget.selectedMoods.contains('Fresh Air')) {
+          for (var place in candidatePlaces) {
+            try {
+              final location = place['location'] as LatLng;
+              final airResponse = await http.get(Uri.parse(
+                'https://airquality.googleapis.com/v1/currentConditions:lookup?'
+                'key=${Config.googleAirQualityApiKey}&'
+                'location.latitude=${location.latitude}&'
+                'location.longitude=${location.longitude}'
               ));
-              if (step['polyline'] != null) {
-                final polylinePoints = _decodePolyline(step['polyline']['points'] as String);
-                optimizedPoints.addAll(polylinePoints);
+
+              if (airResponse.statusCode == 200) {
+                final airData = json.decode(airResponse.body);
+                if (airData['indexes'] != null && airData['indexes'].isNotEmpty) {
+                  final aqi = airData['indexes'][0]['aqi'] as int;
+                  // 将AQI转换为0-1的分数（AQI越低分数越高）
+                  final score = 1.0 - (aqi / 500.0).clamp(0.0, 1.0);
+                  place['airQualityScore'] = score;
+                }
               }
+            } catch (e) {
+              _logError('Error getting air quality data: $e');
+              place['airQualityScore'] = 0.5; // 默认值
             }
           }
-          optimizedPoints.add(LatLng(
-            legs.last['end_location']['lat'] as double,
-            legs.last['end_location']['lng'] as double,
+
+          // 按空气质量分数排序
+          candidatePlaces.sort((a, b) {
+            final scoreA = (a['airQualityScore'] as double?) ?? 0.5;
+            final scoreB = (b['airQualityScore'] as double?) ?? 0.5;
+            return scoreB.compareTo(scoreA);
+          });
+        }
+
+        // 选择前3个地点作为途经点
+        final selectedPlaces = <Map<String, Object>>[];
+        selectedPlaces.addAll(candidatePlaces.take(3).map((place) => 
+          Map<String, Object>.from(place)
+        ).toList());
+
+        // 优化途经点顺序，避免绕圈
+        if (selectedPlaces.length > 1) {
+          // 计算所有可能的排列组合
+          final permutations = _generatePermutations(selectedPlaces);
+          double minTotalDistance = double.infinity;
+          List<Map<String, Object>>? bestOrder;
+
+          for (var permutation in permutations) {
+            double totalDistance = 0;
+            // 计算从起点到第一个途经点的距离
+            totalDistance += _calculateDistance(startPoint, permutation[0]['location'] as LatLng);
+            // 计算途经点之间的距离
+            for (int i = 0; i < permutation.length - 1; i++) {
+              totalDistance += _calculateDistance(
+                permutation[i]['location'] as LatLng,
+                permutation[i + 1]['location'] as LatLng,
+              );
+            }
+            // 计算最后一个途经点到终点的距离
+            totalDistance += _calculateDistance(permutation.last['location'] as LatLng, endPoint);
+
+            if (totalDistance < minTotalDistance) {
+              minTotalDistance = totalDistance;
+              bestOrder = List<Map<String, Object>>.from(permutation);
+            }
+          }
+
+          if (bestOrder != null) {
+            selectedPlaces.clear();
+            selectedPlaces.addAll(bestOrder);
+          }
+        }
+
+        // 使用选中的地点作为途经点获取新路线
+        if (selectedPlaces.isNotEmpty) {
+          final waypointsParam = selectedPlaces.map((place) => 
+            'via:${(place['location'] as LatLng).latitude},${(place['location'] as LatLng).longitude}'
+          ).join('|');
+
+          final routeResponse = await http.get(Uri.parse(
+            'https://maps.googleapis.com/maps/api/directions/json?'
+            'origin=${startPoint.latitude},${startPoint.longitude}&'
+            'destination=${endPoint.latitude},${endPoint.longitude}&'
+            'waypoints=$waypointsParam&'
+            'mode=walking&'
+            'key=${Config.googleMapsApiKey}'
           ));
 
-          return optimizedPoints;
+          if (routeResponse.statusCode == 200) {
+            final routeData = json.decode(routeResponse.body);
+            if (routeData['status'] == 'OK' && routeData['routes'].isNotEmpty) {
+              final route = routeData['routes'][0];
+              final legs = route['legs'];
+              
+              final optimizedPoints = <LatLng>[];
+              for (var leg in legs) {
+                for (var step in leg['steps']) {
+                  optimizedPoints.add(LatLng(
+                    step['start_location']['lat'] as double,
+                    step['start_location']['lng'] as double,
+                  ));
+                  if (step['polyline'] != null) {
+                    final polylinePoints = _decodePolyline(step['polyline']['points'] as String);
+                    optimizedPoints.addAll(polylinePoints);
+                  }
+                }
+              }
+              optimizedPoints.add(LatLng(
+                legs.last['end_location']['lat'] as double,
+                legs.last['end_location']['lng'] as double,
+              ));
+
+              return optimizedPoints;
+            }
+          }
         }
       }
-    } catch (e) {
-      _logError('Error getting optimized route: $e');
     }
 
-    // 如果获取优化路线失败，返回原始路线
+    // 如果无法找到合适的路线，返回原始路线
     return points;
+  }
+
+  // 生成所有可能的排列组合
+  List<List<Map<String, Object>>> _generatePermutations(List<Map<String, Object>> items) {
+    if (items.isEmpty) return [];
+    if (items.length == 1) return [List<Map<String, Object>>.from(items)];
+
+    List<List<Map<String, Object>>> result = [];
+    for (int i = 0; i < items.length; i++) {
+      final current = items[i];
+      final remaining = List<Map<String, Object>>.from(items)..removeAt(i);
+      final permutations = _generatePermutations(remaining);
+      for (var perm in permutations) {
+        result.add([current, ...perm]);
+      }
+    }
+    return result;
   }
 
   double _calculateDistance(LatLng point1, LatLng point2) {
