@@ -93,12 +93,17 @@ Flutter UI  ─┬─▶  Tag Selector ──┐
 </div>
 
 ## API Integrations
+
+<div align="center">
+  
 | Service | Purpose |
 |---------|---------|
 | **OpenStreetMap / Overpass** | Free POI discovery |
 | **OSRM** | Walking path optimisation |
 | **Geolocator** | Positioning & geofencing |
 | *(Optional)* Google Places/Directions | Paid fallback |
+
+</div>
 
 Robust error handling offers retries, graceful degradation and local caching.
 
