@@ -67,10 +67,10 @@ class _FullScreenMapState extends State<FullScreenMap> {
                       initialCenter: widget.initialPosition,
                       initialZoom: 15,
                       onMapReady: () {
-                        setState(() {
-                          _isMapReady = true;
-                        });
-                      },
+                      setState(() {
+                        _isMapReady = true;
+                      });
+                    },
                     ),
                     children: [
                       TileLayer(
@@ -78,19 +78,19 @@ class _FullScreenMapState extends State<FullScreenMap> {
                         userAgentPackageName: 'com.example.stepscape',
                       ),
                       MarkerLayer(
-                        markers: _currentPosition != null
+                    markers: _currentPosition != null
                             ? [
-                                Marker(
+                            Marker(
                                   point: LatLng(
-                                    _currentPosition!.latitude,
-                                    _currentPosition!.longitude,
-                                  ),
+                                _currentPosition!.latitude,
+                                _currentPosition!.longitude,
+                              ),
                                   child: const Icon(
                                     Icons.location_on,
                                     color: Colors.red,
                                     size: 40,
-                                  ),
-                                ),
+                              ),
+                            ),
                               ]
                             : [],
                       ),

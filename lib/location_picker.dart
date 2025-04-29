@@ -65,7 +65,7 @@ class _LocationPickerState extends State<LocationPicker> {
         position.latitude,
         position.longitude,
       );
-
+      
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
         setState(() {
@@ -149,19 +149,19 @@ class _LocationPickerState extends State<LocationPicker> {
           }
         } else {
           if (mounted) {
-            setState(() {
+      setState(() {
               _searchResults = [];
-              _isSearching = false;
-            });
+        _isSearching = false;
+      });
           }
           debugPrint('搜索请求失败: ${response.statusCode}');
         }
-      } catch (e) {
+    } catch (e) {
         if (mounted) {
-          setState(() {
-            _isSearching = false;
-          });
-        }
+      setState(() {
+        _isSearching = false;
+      });
+    }
         debugPrint('搜索地点时出错: $e');
       }
     });
@@ -177,11 +177,11 @@ class _LocationPickerState extends State<LocationPicker> {
       if (place['namedetails'] != null && place['namedetails']['name'] != null) {
         displayName = place['namedetails']['name'];
       }
-      
-      setState(() {
-        _selectedPosition = position;
+        
+        setState(() {
+          _selectedPosition = position;
         _address = displayName;
-        _searchResults = [];
+          _searchResults = [];
         _searchController.text = displayName;
       });
 
@@ -245,12 +245,12 @@ class _LocationPickerState extends State<LocationPicker> {
                   ],
                 ),
                 child: TextButton(
-                  onPressed: () {
-                    Navigator.pop(context, {
-                      'position': _selectedPosition,
+              onPressed: () {
+                Navigator.pop(context, {
+                  'position': _selectedPosition,
                       'address': _address,
-                    });
-                  },
+                });
+              },
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     shape: RoundedRectangleBorder(
@@ -290,26 +290,26 @@ class _LocationPickerState extends State<LocationPicker> {
               Color(0xFFE0EAFC),
               Color(0xFFCFDEF3),
             ],
-          ),
+                          ),
         ),
         child: Column(
           children: [
             Container(
               margin: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
+                      boxShadow: [
+                        BoxShadow(
                     color: Colors.black.withOpacity(0.05),
                     blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: [
+                      children: [
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Container(
@@ -318,9 +318,9 @@ class _LocationPickerState extends State<LocationPicker> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: TextField(
-                        controller: _searchController,
+                          controller: _searchController,
                         style: const TextStyle(fontSize: 16),
-                        decoration: InputDecoration(
+                          decoration: InputDecoration(
                           hintText: '搜索地点（如：UCL、大英博物馆等）',
                           hintStyle: TextStyle(
                             color: Colors.grey[400],
@@ -330,32 +330,32 @@ class _LocationPickerState extends State<LocationPicker> {
                             Icons.search,
                             color: Colors.grey[400],
                           ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
                                   icon: Icon(
                                     Icons.clear,
                                     color: Colors.grey[400],
                                   ),
-                                  onPressed: () {
-                                    _searchController.clear();
+                                    onPressed: () {
+                                      _searchController.clear();
                                     setState(() {
                                       _searchResults = [];
                                     });
-                                  },
-                                )
-                              : null,
+                                    },
+                                  )
+                                : null,
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 12,
                           ),
-                        ),
-                        onChanged: _searchPlaces,
+                          ),
+                          onChanged: _searchPlaces,
                       ),
                     ),
-                  ),
-                  if (_isSearching)
-                    const Padding(
+                        ),
+                        if (_isSearching)
+                          const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8),
                       child: Center(
                         child: SizedBox(
@@ -366,20 +366,20 @@ class _LocationPickerState extends State<LocationPicker> {
                             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6B8CEF)),
                           ),
                         ),
-                      ),
+                          ),
                     )
                   else if (_searchResults.isNotEmpty)
-                    Container(
+                          Container(
                       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF5F7FA),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: ListView.builder(
-                        shrinkWrap: true,
+                            child: ListView.builder(
+                              shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _searchResults.length,
-                        itemBuilder: (context, index) {
+                              itemCount: _searchResults.length,
+                              itemBuilder: (context, index) {
                           final place = _searchResults[index];
                           String displayName = place['display_name'] ?? '未知地点';
                           if (place['namedetails'] != null && place['namedetails']['name'] != null) {
@@ -420,13 +420,13 @@ class _LocationPickerState extends State<LocationPicker> {
                                 ),
                               ),
                             ),
-                          );
-                        },
-                      ),
+                                );
+                              },
+                            ),
+                          ),
+                      ],
                     ),
-                ],
-              ),
-            ),
+                  ),
             Expanded(
               child: Container(
                 margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -476,11 +476,11 @@ class _LocationPickerState extends State<LocationPicker> {
                               ],
                             ),
                         ],
-                      ),
-                      Positioned(
-                        right: 16,
+                ),
+                Positioned(
+                  right: 16,
                         bottom: 16,
-                        child: Container(
+                  child: Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
@@ -509,21 +509,21 @@ class _LocationPickerState extends State<LocationPicker> {
             ),
             Container(
               margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
+                      boxShadow: [
+                        BoxShadow(
                     color: Colors.black.withOpacity(0.05),
                     blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                   if (_isLoading)
                     const Center(
                       child: SizedBox(
@@ -548,7 +548,7 @@ class _LocationPickerState extends State<LocationPicker> {
                           child: Text(
                             _address,
                             style: const TextStyle(
-                              fontSize: 16,
+                                fontSize: 16,
                               fontWeight: FontWeight.w500,
                               color: Color(0xFF2D3142),
                             ),
@@ -565,11 +565,11 @@ class _LocationPickerState extends State<LocationPicker> {
                     ),
                   ),
                 ],
-              ),
-            ),
-          ],
+                  ),
+                ),
+              ],
         ),
-      ),
+            ),
     );
   }
 } 

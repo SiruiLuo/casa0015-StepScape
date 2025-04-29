@@ -98,10 +98,10 @@ class _HomePageState extends State<HomePage> {
   Future<void> _getCurrentLocation() async {
     try {
       final position = await Geolocator.getCurrentPosition();
-      setState(() {
+            setState(() {
         _currentPosition = LatLng(position.latitude, position.longitude);
-        _isLoading = false;
-      });
+              _isLoading = false;
+            });
       _positionStreamController?.add(
         LocationMarkerPosition(
           latitude: position.latitude,
@@ -111,13 +111,13 @@ class _HomePageState extends State<HomePage> {
       );
       _getAddressFromPosition(_currentPosition!);
       _mapController.move(_currentPosition!, 15);
-    } catch (e) {
+      } catch (e) {
       debugPrint('Error getting location: $e');
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
 
   Future<void> _getAddressFromPosition(LatLng position) async {
     try {
@@ -138,25 +138,25 @@ class _HomePageState extends State<HomePage> {
 
   void _openFullScreenMap() {
     if (_currentPosition != null && mounted) {
-      Navigator.push(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) {
-            return FullScreenMap(
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) {
+              return FullScreenMap(
               initialPosition: _currentPosition!,
-              heroTag: 'map_preview',
-              previewController: _mapController,
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 500),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
-          },
-        ),
-      );
+                heroTag: 'map_preview',
+                previewController: _mapController,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 500),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+          ),
+        );
     }
   }
 
@@ -178,82 +178,82 @@ class _HomePageState extends State<HomePage> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : Column(
-                  children: [
-                    Padding(
+            children: [
+              Padding(
                       padding: const EdgeInsets.only(left: 32, right: 16, top: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'StepScape',
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'StepScape',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
                               color: Color(0xFF1976D2),
-                              shadows: [
-                                Shadow(
+                        shadows: [
+                          Shadow(
                                   color: Color(0xFFBBDEFB),
-                                  offset: Offset(0, 2),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              final mainPageState = context.findAncestorStateOfType<_MainPageState>();
-                              if (mainPageState != null) {
-                                mainPageState._onItemTapped(2);
-                              }
-                            },
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFFBBDEFB),
-                                    Color(0xFF90CAF9),
-                                  ],
-                                ),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0xFFBBDEFB),
-                                    blurRadius: 8,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.person,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ),
+                            offset: Offset(0, 2),
+                            blurRadius: 4,
                           ),
                         ],
                       ),
                     ),
+                    GestureDetector(
+                      onTap: () {
+                        final mainPageState = context.findAncestorStateOfType<_MainPageState>();
+                        if (mainPageState != null) {
+                                mainPageState._onItemTapped(2);
+                        }
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [
+                                    Color(0xFFBBDEFB),
+                                    Color(0xFF90CAF9),
+                            ],
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                                    color: Color(0xFFBBDEFB),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
                     const SizedBox(height: 16),
                     Expanded(
                       child: Container(
                         margin: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                  color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
+                  boxShadow: [
+                    BoxShadow(
                               color: Colors.blue[100]!,
-                              blurRadius: 8,
+                      blurRadius: 8,
                               offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
+                    ),
+                  ],
+                ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(16),
                           child: Stack(
-                            children: [
+                    children: [
                               GestureDetector(
                                 onTap: _openFullScreenMap,
                                 child: FlutterMap(
@@ -262,7 +262,7 @@ class _HomePageState extends State<HomePage> {
                                     initialCenter: _currentPosition ?? const LatLng(51.5, -0.09),
                                     initialZoom: 15,
                                   ),
-                                  children: [
+                        children: [
                                     TileLayer(
                                       urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                                       userAgentPackageName: 'com.example.app',
@@ -276,10 +276,10 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                         markerSize: const Size(20, 20),
                                         accuracyCircleColor: const Color(0xFF1976D2).withOpacity(0.1),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                            ),
+                          ),
+                        ],
+                      ),
                               ),
                               Positioned(
                                 right: 16,
@@ -307,27 +307,27 @@ class _HomePageState extends State<HomePage> {
                                     icon: const Icon(Icons.my_location),
                                     color: Colors.white,
                                     onPressed: _getCurrentLocation,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Container(
+                            ),
+                  ),
+                Container(
                       margin: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
+                  decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.blue[100]!,
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue[100]!,
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
+                    ],
+                  ),
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Column(
@@ -355,26 +355,26 @@ class _HomePageState extends State<HomePage> {
                                     fontWeight: FontWeight.bold,
                                     color: Colors.blue[700],
                                   ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
                             const SizedBox(height: 16),
-                            Text(
+                                    Text(
                               _currentAddress ?? 'Getting location...',
-                              style: TextStyle(
+                                      style: TextStyle(
                                 fontSize: 16,
                                 color: _currentAddress != null ? Colors.black87 : Colors.grey[400],
-                              ),
-                            ),
+                                      ),
+                                    ),
                             if (_currentAddress != null) ...[
                               const SizedBox(height: 12),
-                            ],
+                                  ],
                           ],
                         ),
                       ),
                     ),
-                  ],
-                ),
+            ],
+          ),
         ),
       ),
     );
@@ -649,12 +649,12 @@ class _PlanPageState extends State<PlanPage> {
                           ),
                           const SizedBox(width: 12),
                           const Text(
-                            'Start Navigation',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                        'Start Navigation',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
-                            ),
+                        ),
                           ),
                         ],
                       ),
@@ -1020,9 +1020,9 @@ class _NavigationPageState extends State<NavigationPage> {
                   color: Colors.blue,
                   size: 10,
                 ),
-              ),
-            ),
-          );
+          ),
+        ),
+      );
         }
       }
 
@@ -1080,7 +1080,7 @@ class _NavigationPageState extends State<NavigationPage> {
     // 限制缩放级别在合理范围内
     zoom = zoom.clamp(12.0, 18.0);
 
-    setState(() {
+            setState(() {
       _isMapReady = true;
     });
 
@@ -1110,7 +1110,7 @@ class _NavigationPageState extends State<NavigationPage> {
               route.endPosition == widget.endPosition
             ).id
       );
-      setState(() {
+        setState(() {
         _isSaved = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1248,9 +1248,9 @@ class _NavigationPageState extends State<NavigationPage> {
                       Expanded(
                         child: Text(
                           'Estimated Time: ${_totalDuration ?? "Calculating..."}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black87,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.black87,
                           ),
                           softWrap: true,
                           overflow: TextOverflow.ellipsis,
@@ -1378,7 +1378,7 @@ class _NavigationPageState extends State<NavigationPage> {
                 onPressed: _saveRoute,
               ),
             ),
-          ),
+            ),
         ],
       ),
     );
@@ -1392,7 +1392,7 @@ class _NavigationPageState extends State<NavigationPage> {
         
         // 移动地图视角到当前步骤的起点
         _mapController.move(
-          widget.steps[_currentStep].startLocation,
+            widget.steps[_currentStep].startLocation,
           15,
         );
       });
@@ -1520,7 +1520,7 @@ class _MinePageState extends State<MinePage> with SingleTickerProviderStateMixin
 
   Widget _buildRouteList(List<SavedRoute> routes, bool isHistory) {
     if (routes.isEmpty) {
-      return const Center(
+    return const Center(
         child: Text(
           'No routes',
           style: TextStyle(
@@ -1855,7 +1855,7 @@ class _LoadingPageState extends State<LoadingPage> with TickerProviderStateMixin
     _controller.repeat();
     
     // 生成路线
-    _generateRoute();
+      _generateRoute();
   }
 
   @override
@@ -1878,7 +1878,7 @@ class _LoadingPageState extends State<LoadingPage> with TickerProviderStateMixin
         moods: widget.selectedMoods,
       );
 
-      setState(() {
+            setState(() {
         _optimizedPoints = directions.polyline;
         _steps = directions.steps;
         _currentStepIndex = 0;
@@ -1904,15 +1904,15 @@ class _LoadingPageState extends State<LoadingPage> with TickerProviderStateMixin
       await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
+      Navigator.pushReplacement(
+        context,
           MaterialPageRoute(
             builder: (context) => NavigationPage(
-              startPosition: widget.startPosition,
-              endPosition: widget.endPosition,
+                startPosition: widget.startPosition,
+                endPosition: widget.endPosition,
               startName: widget.startName,
               endName: widget.endName,
-              selectedMoods: widget.selectedMoods,
+                selectedMoods: widget.selectedMoods,
               optimizedPoints: _optimizedPoints,
               steps: _steps,
               selectedTheme: widget.selectedTheme,
